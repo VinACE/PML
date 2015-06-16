@@ -1,5 +1,5 @@
 ---
-title: "Practial Machine Learning"
+title: "Machine Learning"
 author: "Vinsent"
 date: "Monday, June 15, 2015"
 output: word_document
@@ -9,7 +9,7 @@ This is an R Markdown document. Markdown is a simple formatting syntax for autho
 
 When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
 ## Read the training data
-```{r}
+```{r }
 as1_train <- read.csv("D:/course_era/DataScience_specialization/practical machine learning/assignment1/pml-training_01.csv", header = TRUE, sep = ",")
 
 # summary(as1_train) 
@@ -65,7 +65,7 @@ pca_analysis$rotation[,1]
 
 ```
 
-```{r, echo = FALSE}
+```{r}
 # reference http://little-book-of-r-for-multivariate-analysis.readthedocs.org/en/latest/src/multivariateanalysis.html
 
 
