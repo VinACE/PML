@@ -1,0 +1,162 @@
+---
+title: "Machine Learning"
+author: "Vinsent"
+date: "Monday, April 4, 2016"
+output: pdf_document
+---
+###Prediction Assignment1
+
+###Overview:
+
+###The goal of your project is to predict the manner in which they did the exercise by using any of the machine learning model. Then evaluate the results obtained by cross validating the prediction and actual results. The model also needs to validate the given 20 test cases and the error in predicting them.
+###
+
+
+
+## Read the training data
+```{r }
+# load the libraries
+library(class)
+library(gmodels)
+library(corrgram)
+library(ellipse)
+
+
+as1_train <- read.csv("G:/coursera/DataScience_specialization/practical machine learning/assignment1/pml-training_01.csv", header = TRUE, sep = ",")
+
+# summary(as1_train) 
+
+# summary(as1_train$classe) 
+
+```
+## Read the test data and its summary
+
+```{r}
+as1_test <- read.csv("G:/coursera/DataScience_specialization/practical machine learning/assignment1/pml-training_01.csv", header = TRUE, sep = ",")
+# summary(as1_test)
+
+```
+# PreProcessing
+
+## Check the number of target classes. Plot these values
+
+## PCA principle component analysis to reduce the inputs to the model.
+
+#### removing the time stamp columns to get rid of the dates column for PCA...
+#### removed the NA, completely missing value columns for PCA input.
+#### selecting only a subset of columns from the original data set as1_train
+
+####  the below subset command did not work.
+#### as1_test.sub2 <- as1_test[, c(user_name, num_window,roll_belt,pitch_belt,yaw_belt,total_accel_belt,kurtosis_roll######_beearm_y,magnet_forearm_z,problem_id)]
+
+##### as1.test.sub2 <- as1_test[, c(1,2)]
+##### x.sub2 <- subset(as1_test,  select = c(1,3,4))
+```{r}
+as1_train <- read.csv("G:/coursera/DataScience_specialization/practical machine learning/assignment1/pml-training_01.csv", header = TRUE, sep = ",")
+
+#### after cleaning the dataset we have around 54 columns from 159 columns.. 
+#### the last variable is the target class
+ncol(as1_train)
+pca_analysis <- prcomp(as1_train[1:54], scale.=TRUE)
+
+#!summary(pca_analysis)
+
+sum((pca_analysis$sdev)^2)
+
+screeplot(pca_analysis, type="lines")
+
+(pca_analysis$sdev)^2
+
+# PCA 1 to 14 can be combined to have 0.81 % of variation in the dataset. but for this study I am taking only PCA1 and PCA 2. Also this is able to capure the five groups A,B,C,D,E
+plot(pca_analysis$x[,1],pca_analysis$x[,2])
+text(pca_analysis$x[,1],pca_analysis$x[,2], pca_analysis$V1, cex=0.7, pos=4, col="red")
+pca_analysis$rotation[,1]
+
+```
+# Exploratory Analysis To see how the variables are correlated.
+### The below exploration also explains what the variable highly correlated, This indicates like what variables are good for the prediction. A good feature selection should include uncorrelated variables to have less bias in your prediction.
+```{r}
+# corrgram(as1_train, order= NULL, lower.panel=panel.shade,
+#   upper.panel =  NULL, text.panel=panel.txt,
+#   main="Groupware  Human Activity Recognition Data in PC2/PC1 Order")
+# another colored corrgram
+
+R = cor(as1_train[, 1:10])
+round(R, 3)
+plotcorr(R, col = colorRampPalette(c("#E08214", "white", "#8073AC"))(10), type = "lower")
+
+```
+
+
+
+```{r}
+# reference http://little-book-of-r-for-multivariate-analysis.readthedocs.org/en/latest/src/multivariateanalysis.html
+
+
+
+# Loading the data to check the proportion in each case A to E. in percentage
+
+round(prop.table(table(as1_train$classe)) * 100, digits = 1)
+round(prop.table(table(as1_test$classe)) * 100, digits = 1)
+
+# Normalizing the data  
+
+normalize <- function(x) {
+return ((x - min(x)) / (max(x) - min(x)))
+}
+
+as1_train_n <- as.data.frame(lapply(as1_train[1:54], normalize))
+as1_test_n <- as.data.frame(lapply(as1_test[1:54], normalize))
+
+```
+## KNN Classifier
+```{r}
+
+
+
+# Extracting the labels
+as1_train_labels <- as1_train$classe
+as1_test_labels <- as1_test$classe
+
+# Need to remove the missing values in the training and test dataframes
+
+as1_train_n1 <- na.omit(as1_train_n)
+# as1_test_n1 <- na.omit(as1_test_n)
+
+# Prediction
+
+as1_pred <- knn(train = as1_train_n1, test = as1_test_n, cl = as1_train_labels, k=5)
+
+# test set classification
+
+as1_test_pred <- knn(train = as1_train_n1, test = as1_test_n,
+cl = as1_train_labels, k=5)
+
+# The below are the predicted lables.
+head(as1_test_pred, 10)
+```
+## Evaluating the model
+
+```{r}
+
+
+library(gmodels)
+
+# I have  assigned some fictitious data for the label as there were no lables given for the test set.
+
+
+CrossTable(x = as1_test_labels, y = as1_test_pred,
+prop.chisq=FALSE)
+```
+### The below are the predicted lables.
+as1_test_pred
+
+####  [1] B A A A A E D B A A B A B A E E E B B B
+#### Levels: A B C D E
+
+
+## Inference from the prediction
+
+###there were no labels for 'C' Category, A was predicted as A 100% classified correctly, There were 10% miss classification ####for 'B', C were all miss classified. D was also calssified correctly 100%. E was also calssified correctly 100%.
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
